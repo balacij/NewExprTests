@@ -5,8 +5,8 @@ module Lib where
 import Data.Typeable (Proxy (Proxy))
 import Knowledge.Concepts.Definition (mkDefinition)
 import Knowledge.Maths.Aliases (QDefinition, TFDefinition, UFDefinition)
-import Knowledge.Maths.Expr (Expr (Add, IfTE, Lit, Not, TFCall, UFCall))
-import Knowledge.Maths.Literal (Literal (Bool, Int))
+import Knowledge.Maths.Expr (Expr, ExprC (..))
+import Knowledge.Maths.Literal (LiteralC(..))
 import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
 import KnowledgeBase.ChunkDB (ChunkDB, empty, insert')
 import KnowledgeBase.TypedUIDRef (mkRef)
@@ -25,22 +25,22 @@ func2 :: QuantityDict (Bool -> Int -> Int -> Int)
 func2 = mkQuantityDict (Proxy @(Bool -> Int -> Int -> Int)) (mkUid "func2") "c2" "d2"
 
 varDef1 :: QDefinition Expr Int
-varDef1 = mkDefinition (mkUid "varDef1") var1 (Lit $ Int 1) "e1" "f1"
+varDef1 = mkDefinition (mkUid "varDef1") var1 (int 1) "e1" "f1"
 
 varDef2 :: QDefinition Expr Bool
-varDef2 = mkDefinition (mkUid "varDef2") var2 (Not $ Lit $ Bool False) "e2" "f2"
+varDef2 = mkDefinition (mkUid "varDef2") var2 (not_ $ bool False) "e2" "f2"
 
 funcDef1 :: UFDefinition Expr Int Int
-funcDef1 = mkDefinition (mkUid "funcDef1") func1 (\x -> Add x (Lit $ Int 1)) "g1" "h1"
+funcDef1 = mkDefinition (mkUid "funcDef1") func1 (\x -> add x (int 1)) "g1" "h1"
 
 funcDef2 :: TFDefinition Expr Bool Int Int Int
-funcDef2 = mkDefinition (mkUid "funcDef2") func2 IfTE "g2" "h2"
+funcDef2 = mkDefinition (mkUid "funcDef2") func2 ifTE "g2" "h2"
 
 callFunc1 :: Expr Int
-callFunc1 = UFCall (mkRef funcDef1) (Lit $ Int 1)
+callFunc1 = ufCall (mkRef funcDef1) (int 1)
 
 callFunc3 :: Expr Int
-callFunc3 = TFCall (mkRef funcDef2) (Lit $ Bool True) (Lit $ Int 2) (Lit $ Int 3)
+callFunc3 = tfCall (mkRef funcDef2) (bool True) (int 2) (int 3)
 
 cdb :: ChunkDB
 cdb =
