@@ -14,8 +14,11 @@ import KnowledgeBase.TypedUIDRef (TypedUIDRef)
 
 data Expr t where
   Lit :: Literal t -> Expr t
+  Not :: Expr Bool -> Expr Bool
   Add :: Num t => Expr t -> Expr t -> Expr t
   Sub :: Num t => Expr t -> Expr t -> Expr t -- TODO: We might need to create our own copies of Haskell 'Num' typeclass more suited to Drasil, 'Sub' under Naturals is 'Monus' for example, and we should make this difference a bit more explicit ... somehow... im not sure yet how
+
+  IfTE :: Expr Bool -> Expr a -> Expr a -> Expr a
 
   -- TODO: I would like an alternative to this all below, or else creating functions with >10 variables will be a real hassle (but, safe at least!).
   -- | Symbol

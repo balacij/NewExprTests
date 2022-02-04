@@ -5,7 +5,8 @@ module Knowledge.Maths.QuantityDict
 where
 
 import Data.Typeable (Proxy (..))
-import KnowledgeBase.UID (UID, mkUid)
+import KnowledgeBase.Chunk (HasChunkRefs (chunkRefs))
+import KnowledgeBase.UID (HasUID (uid), UID, mkUid)
 
 data QuantityDict typ = QuantityDict
   { _uid :: UID,
@@ -15,6 +16,10 @@ data QuantityDict typ = QuantityDict
     --       nice if this could be replaced with an upgraded "Space"
     _typ :: Proxy typ
   }
+
+instance HasUID (QuantityDict t) where uid = _uid
+
+instance HasChunkRefs (QuantityDict t) where chunkRefs = const []
 
 -- * Smart Constructor
 

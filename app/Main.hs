@@ -1,5 +1,7 @@
 module Main where
 
+import Lib (test1)
+
 main :: IO ()
 main = do
-    putStrLn "Hello world!"
+  test1

@@ -8,7 +8,7 @@ module KnowledgeBase.ChunkDB (
     , find, findOrErr
     , findRefs, findRefsOrErr
     , findAll
-    , insert, insertAll, insertAllOrIgnore
+    , insert, insert', insertAll, insertAllOrIgnore
     , union
     , registered, isRegistered
     , refbyTable -- FIXME: This function should be re-examined. Some functions can probably be moved here!
@@ -67,6 +67,9 @@ findRefs u (ChunkDB (tc, _)) = do
 
 findRefsOrErr :: UID -> ChunkDB -> [UID]
 findRefsOrErr u = fromMaybe (error $ "Failed to find references for unknown chunk " ++ show u) . find u
+
+insert' :: (HasUID a, HasChunkRefs a, Typeable a) => a -> ChunkDB -> ChunkDB
+insert' = flip insert
 
 insert :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> a -> ChunkDB
 insert (ChunkDB (cu, ctr)) c

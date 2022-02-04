@@ -34,6 +34,7 @@ library
       KnowledgeBase.ChunkDB
       KnowledgeBase.TypedUIDRef
       KnowledgeBase.UID
+      Lib
   other-modules:
       Paths_NewExprTests
   hs-source-dirs:
