@@ -4,8 +4,8 @@ module Lib where
 
 import Data.Typeable (Proxy (Proxy))
 import Knowledge.Concepts.Definition (mkDefinition)
-import Knowledge.Maths.Aliases (QDefinition, UFDefinition, TFDefinition)
-import Knowledge.Maths.Expr (Expr (Add, Lit, Not, UFCall, IfTE, TFCall))
+import Knowledge.Maths.Aliases (QDefinition, TFDefinition, UFDefinition)
+import Knowledge.Maths.Expr (Expr (Add, IfTE, Lit, Not, TFCall, UFCall))
 import Knowledge.Maths.Literal (Literal (Bool, Int))
 import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
 import KnowledgeBase.ChunkDB (ChunkDB, empty, insert')
