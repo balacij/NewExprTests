@@ -1,12 +1,13 @@
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Lib where
 
 import Data.Typeable (Proxy (Proxy))
-import Knowledge.Concepts.Definition (mkDefinition)
+import Knowledge.Concepts.Definition (Definition, mkDefinition)
 import Knowledge.Maths.Aliases (QDefinition, TFDefinition, UFDefinition)
 import Knowledge.Maths.Expr (Expr, ExprC (..))
-import Knowledge.Maths.Literal (LiteralC(..))
+import Knowledge.Maths.Literal (LiteralC (..))
 import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
 import KnowledgeBase.ChunkDB (ChunkDB, empty, insert')
 import KnowledgeBase.TypedUIDRef (mkRef)
@@ -41,6 +42,12 @@ callFunc1 = ufCall (mkRef funcDef1) (int 1)
 
 callFunc3 :: Expr Int
 callFunc3 = tfCall (mkRef funcDef2) (bool True) (int 2) (int 3)
+
+funcDef3 :: QDefinition Expr (Int -> Int)
+funcDef3 = mkDefinition (mkUid "funcDef3") func1 (lam (\x -> add x (int 1))) "g3" "h3"
+
+funcDef4 :: QDefinition Expr (Bool -> Int -> Int -> Int) -- This looks pretty nice!
+funcDef4 = mkDefinition (mkUid "funcDef4") func2 (lam (\b -> lam (lam . ifTE b))) "g4" "gh"
 
 cdb :: ChunkDB
 cdb =
