@@ -25,11 +25,15 @@ source-repository head
 
 library
   exposed-modules:
-      Knowledge.QuantityDict
+      Knowledge.Concepts.Definition
+      Knowledge.Maths.Aliases
+      Knowledge.Maths.Expr
+      Knowledge.Maths.Literal
+      Knowledge.Maths.QuantityDict
       KnowledgeBase.Chunk
       KnowledgeBase.ChunkDB
+      KnowledgeBase.TypedUIDRef
       KnowledgeBase.UID
-      Lib
   other-modules:
       Paths_NewExprTests
   hs-source-dirs:

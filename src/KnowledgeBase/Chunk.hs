@@ -1,15 +1,16 @@
 {-# LANGUAGE ExistentialQuantification #-}
-module KnowledgeBase.Chunk (
-      Chunk
-    , HasChunkRefs(..)
-    , mkChunk
-    , unChunk
-    , chunkType
-) where
 
-import KnowledgeBase.UID (HasUID(..), UID)
-import Data.Typeable (Typeable, cast, TypeRep, typeOf)
+module KnowledgeBase.Chunk
+  ( Chunk,
+    HasChunkRefs (..),
+    mkChunk,
+    unChunk,
+    chunkType,
+  )
+where
 
+import Data.Typeable (TypeRep, Typeable, cast, typeOf)
+import KnowledgeBase.UID (HasUID (..), UID)
 
 class HasChunkRefs a where
   chunkRefs :: a -> [UID]
@@ -20,7 +21,7 @@ instance Eq Chunk where
   l == r = uid l == uid r
 
 instance HasUID Chunk where
-    uid (Chunk t) = uid t
+  uid (Chunk t) = uid t
 
 mkChunk :: (HasUID a, HasChunkRefs a, Typeable a) => a -> Chunk
 mkChunk = Chunk
