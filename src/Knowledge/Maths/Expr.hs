@@ -3,10 +3,13 @@
 module Knowledge.Maths.Expr where
 
 import Data.Typeable (Proxy (Proxy))
-import Knowledge.Maths.Aliases
+import Knowledge.Maths.Aliases (BFuncDict, TFuncDict, UFuncDict)
 import Knowledge.Maths.Literal (Literal, LiteralC (..))
-import Knowledge.Maths.QuantityDict (mkQuantityDict, QuantityDict)
+import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
 import KnowledgeBase.TypedUIDRef (TypedUIDRef)
+
+-- A conscious choice was made to make Expr not refer to specific definitions, but to refer to only QuantityDicts.
+-- This is probably a big decision. Might be notable on thesis.
 
 data Expr t where
   Lit :: Literal t -> Expr t
