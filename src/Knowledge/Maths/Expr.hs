@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Knowledge.Maths.Expr where
 
@@ -27,12 +26,10 @@ data Expr t where
 
   -- | Symbol
   Sy :: TypedUIDRef (QDefinition Expr t) -> Expr t
-
   -- ASIDE: Suggested style
 
   Lam :: (Expr a -> Expr b) -> Expr (a -> b)
   App :: Expr (a -> b) -> Expr a -> Expr b
-
   -- ASIDE: Trying something out...
 
   -- | Unary Function "Call"s
@@ -41,14 +38,15 @@ data Expr t where
   BFCall :: TypedUIDRef (BFDefinition Expr a b t) -> Expr a -> Expr b -> Expr t
   -- | Tertiary Functions "Call"s
   TFCall :: TypedUIDRef (TFDefinition Expr a b c t) -> Expr a -> Expr b -> Expr c -> Expr t
-  -- TODO: It would be really nice here if we could get these to scale better.
-  --       Right now, it would require us to manually build many constructors.
-  --       Writing a constructor for 1-5 parameter functions would be do-able,
-  --       ...                       1-10 ...                         okay
-  --       ...                       1-100 ...                     make this file huge.
 
-  -- TODO: Should we try to replace the above constructors with something similar to the type-indexed heterogeneous lists?
-  --       I've given this a few attempts, but have failed thus far.
+-- TODO: It would be really nice here if we could get these to scale better.
+--       Right now, it would require us to manually build many constructors.
+--       Writing a constructor for 1-5 parameter functions would be do-able,
+--       ...                       1-10 ...                         okay
+--       ...                       1-100 ...                     make this file huge.
+
+-- TODO: Should we try to replace the above constructors with something similar to the type-indexed heterogeneous lists?
+--       I've given this a few attempts, but have failed thus far.
 
 class ExprC r where
   lit :: Literal t -> r t
