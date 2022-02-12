@@ -1,14 +1,13 @@
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction #-} -- TODO: This flag is a bit of a double-sided sword. We _should not_ leave Chunks with polymorphic type parameters because references should to it should all be able to assume the same monomorphic type. Surprisingly, it's good to have this flag disabled! But I like it, and I'm aware of it, so I'll keep it enabled...
 
 module Lib where
 
 import Data.Typeable (Proxy (Proxy))
 import Knowledge.Concepts.Definition (Definition, mkDefinition)
-import Knowledge.Maths.Aliases (QDefinition, TFDefinition, UFDefinition)
 import Knowledge.Maths.Expr (Expr, ExprC (..))
 import Knowledge.Maths.Literal (LiteralC (..))
-import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
+import Knowledge.Maths.QuantityDict (QuantityDict, mkQDefinition, mkQuantityDict)
 import KnowledgeBase.ChunkDB (ChunkDB, empty, insert')
 import KnowledgeBase.TypedUIDRef (mkRef)
 import KnowledgeBase.UID (mkUid)
@@ -25,29 +24,46 @@ func1 = mkQuantityDict (Proxy @(Int -> Int)) (mkUid "func1") "c1" "d1"
 func2 :: QuantityDict (Bool -> Int -> Int -> Int)
 func2 = mkQuantityDict (Proxy @(Bool -> Int -> Int -> Int)) (mkUid "func2") "c2" "d2"
 
-varDef1 :: QDefinition Expr Int
+varDef1 :: Definition (QuantityDict Int) (Expr Int)
 varDef1 = mkDefinition (mkUid "varDef1") var1 (int 1) "e1" "f1"
 
-varDef2 :: QDefinition Expr Bool
+varDef2 :: Definition (QuantityDict Bool) (Expr Bool)
 varDef2 = mkDefinition (mkUid "varDef2") var2 (not_ $ bool False) "e2" "f2"
 
-funcDef1 :: UFDefinition Expr Int Int
+funcDef1 :: Definition (QuantityDict (Int -> Int)) (Expr Int -> Expr Int)
 funcDef1 = mkDefinition (mkUid "funcDef1") func1 (\x -> add x (int 1)) "g1" "h1"
 
-funcDef2 :: TFDefinition Expr Bool Int Int Int
+funcDef2 :: Definition (QuantityDict (Bool -> Int -> Int -> Int)) (Expr Bool -> Expr Int -> Expr Int -> Expr Int)
 funcDef2 = mkDefinition (mkUid "funcDef2") func2 ifTE "g2" "h2"
 
 callFunc1 :: Expr Int
-callFunc1 = ufCall (mkRef funcDef1) (int 1)
+callFunc1 = ufCall (mkRef func1) (int 1)
 
 callFunc3 :: Expr Int
-callFunc3 = tfCall (mkRef funcDef2) (bool True) (int 2) (int 3)
+callFunc3 = tfCall (mkRef func2) (bool True) (int 2) (int 3)
 
-funcDef3 :: QDefinition Expr (Int -> Int)
+funcDef3 :: Definition (QuantityDict (Int -> Int)) (Expr (Int -> Int))
 funcDef3 = mkDefinition (mkUid "funcDef3") func1 (lam (\x -> add x (int 1))) "g3" "h3"
 
-funcDef4 :: QDefinition Expr (Bool -> Int -> Int -> Int) -- This looks pretty nice!
+{-
+
+`mkDefinition` is generally 'more open' to errors (which is okay, because we might
+want to use the generic concept of a Definition else where too). For example, the below
+is the _inferred_ type signature when using `mkDefinition`, note the problematic `b`s:
+
+funcDef4 :: ExprC r =>
+  Definition
+    (QuantityDict (Bool -> Int -> Int -> Int))
+    (r (Bool -> b -> b -> b))
 funcDef4 = mkDefinition (mkUid "funcDef4") func2 (lam (\b -> lam (lam . ifTE b))) "g4" "gh"
+
+Luckily, we can just create a helper function for things that we commonly define with a type param
+to straighten up the type nicely: e.g., `mkQDefinition` (QuantityDict Definition)
+
+-}
+
+funcDef4 :: Definition (QuantityDict (Bool -> Int -> Int -> Int)) (Expr (Bool -> Int -> Int -> Int))
+funcDef4 = mkQDefinition (mkUid "funcDef4") func2 (lam (\b -> lam (lam . ifTE b))) "g4" "gh"
 
 cdb :: ChunkDB
 cdb =

@@ -4,13 +4,8 @@ module Knowledge.Maths.Expr where
 
 import Data.Typeable (Proxy (Proxy))
 import Knowledge.Maths.Aliases
-  ( BFDefinition,
-    QDefinition,
-    TFDefinition,
-    UFDefinition,
-  )
 import Knowledge.Maths.Literal (Literal, LiteralC (..))
-import Knowledge.Maths.QuantityDict (mkQuantityDict)
+import Knowledge.Maths.QuantityDict (mkQuantityDict, QuantityDict)
 import KnowledgeBase.TypedUIDRef (TypedUIDRef)
 
 data Expr t where
@@ -25,7 +20,7 @@ data Expr t where
   --       For now, I've excluded them from this test.
 
   -- | Symbol
-  Sy :: TypedUIDRef (QDefinition Expr t) -> Expr t
+  Sy :: TypedUIDRef (QuantityDict t) -> Expr t
   -- ASIDE: Suggested style
 
   Lam :: (Expr a -> Expr b) -> Expr (a -> b)
@@ -33,11 +28,11 @@ data Expr t where
   -- ASIDE: Trying something out...
 
   -- | Unary Function "Call"s
-  UFCall :: TypedUIDRef (UFDefinition Expr a t) -> Expr a -> Expr t
+  UFCall :: TypedUIDRef (UFuncDict a t) -> Expr a -> Expr t
   -- | Binary Function "Call"s
-  BFCall :: TypedUIDRef (BFDefinition Expr a b t) -> Expr a -> Expr b -> Expr t
+  BFCall :: TypedUIDRef (BFuncDict a b t) -> Expr a -> Expr b -> Expr t
   -- | Tertiary Functions "Call"s
-  TFCall :: TypedUIDRef (TFDefinition Expr a b c t) -> Expr a -> Expr b -> Expr c -> Expr t
+  TFCall :: TypedUIDRef (TFuncDict a b c t) -> Expr a -> Expr b -> Expr c -> Expr t
 
 -- TODO: It would be really nice here if we could get these to scale better.
 --       Right now, it would require us to manually build many constructors.
@@ -56,14 +51,14 @@ class ExprC r where
 
   ifTE :: r Bool -> r a -> r a -> r a
 
-  sy :: TypedUIDRef (QDefinition r t) -> r t
+  sy :: TypedUIDRef (QuantityDict t) -> r t
 
   lam :: (r a -> r b) -> r (a -> b)
   app :: r (a -> b) -> r a -> r b
 
-  ufCall :: TypedUIDRef (UFDefinition r a t) -> r a -> r t
-  bfCall :: TypedUIDRef (BFDefinition r a b t) -> r a -> r b -> r t
-  tfCall :: TypedUIDRef (TFDefinition r a b c t) -> r a -> r b -> r c -> r t
+  ufCall :: TypedUIDRef (UFuncDict a t) -> r a -> r t
+  bfCall :: TypedUIDRef (BFuncDict a b t) -> r a -> r b -> r t
+  tfCall :: TypedUIDRef (TFuncDict a b c t) -> r a -> r b -> r c -> r t
 
 instance LiteralC Expr where
   int = lit . int

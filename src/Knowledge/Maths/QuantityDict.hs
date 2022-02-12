@@ -1,10 +1,12 @@
 module Knowledge.Maths.QuantityDict
   ( QuantityDict,
     mkQuantityDict,
+    mkQDefinition,
   )
 where
 
 import Data.Typeable (Proxy (..))
+import Knowledge.Concepts.Definition (Definition, mkDefinition)
 import KnowledgeBase.Chunk (HasChunkRefs (chunkRefs))
 import KnowledgeBase.UID (HasUID (uid), UID, mkUid)
 
@@ -25,3 +27,6 @@ instance HasChunkRefs (QuantityDict t) where chunkRefs = const []
 
 mkQuantityDict :: Proxy typ -> UID -> String -> String -> QuantityDict typ
 mkQuantityDict pr u a b = QuantityDict u a b pr
+
+mkQDefinition :: UID -> QuantityDict typ -> r typ -> String -> String -> Definition (QuantityDict typ) (r typ)
+mkQDefinition = mkDefinition
