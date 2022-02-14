@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE NoMonomorphismRestriction #-} -- TODO: This flag is a bit of a double-sided sword. We _should not_ leave Chunks with polymorphic type parameters because references should to it should all be able to assume the same monomorphic type. Surprisingly, it's good to have this flag disabled! But I like it, and I'm aware of it, so I'll keep it enabled...
+-- TODO: NoMonomorphismRestriction is a bit of a double-sided sword. We _should not_ leave Chunks with polymorphic type parameters because references should to it should all be able to assume the same monomorphic type. Surprisingly, it's good to have this flag disabled! But I like it, and I'm aware of it, so I'll keep it enabled...
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Lib where
 
@@ -7,7 +8,8 @@ import Data.Typeable (Proxy (Proxy))
 import Knowledge.Concepts.Definition (Definition, mkDefinition)
 import Knowledge.Maths.Expr (Expr, ExprC (..))
 import Knowledge.Maths.Literal (LiteralC (..))
-import Knowledge.Maths.QuantityDict (QuantityDict, mkQDefinition, mkQuantityDict)
+import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
+import Knowledge.Maths.QuantityDict.Definition (mkQDefinition)
 import KnowledgeBase.ChunkDB (ChunkDB, empty, insert')
 import KnowledgeBase.TypedUIDRef (mkRef)
 import KnowledgeBase.UID (mkUid)
@@ -25,25 +27,19 @@ func2 :: QuantityDict (Bool -> Int -> Int -> Int)
 func2 = mkQuantityDict (Proxy @(Bool -> Int -> Int -> Int)) (mkUid "func2") "c2" "d2"
 
 varDef1 :: Definition (QuantityDict Int) (Expr Int)
-varDef1 = mkDefinition (mkUid "varDef1") var1 (int 1) "e1" "f1"
+varDef1 = mkQDefinition (mkUid "varDef1") var1 (int 1) "e1" "f1"
 
 varDef2 :: Definition (QuantityDict Bool) (Expr Bool)
-varDef2 = mkDefinition (mkUid "varDef2") var2 (not_ $ bool False) "e2" "f2"
+varDef2 = mkQDefinition (mkUid "varDef2") var2 (not_ $ bool False) "e2" "f2"
 
-funcDef1 :: Definition (QuantityDict (Int -> Int)) (Expr Int -> Expr Int)
-funcDef1 = mkDefinition (mkUid "funcDef1") func1 (\x -> add x (int 1)) "g1" "h1"
+funcDef1 :: Definition (QuantityDict (Int -> Int)) (Expr (Int -> Int))
+funcDef1 = mkQDefinition (mkUid "funcDef1") func1 (lam $ \x -> add x (int 1)) "g1" "h1"
 
-funcDef2 :: Definition (QuantityDict (Bool -> Int -> Int -> Int)) (Expr Bool -> Expr Int -> Expr Int -> Expr Int)
-funcDef2 = mkDefinition (mkUid "funcDef2") func2 ifTE "g2" "h2"
-
-callFunc1 :: Expr Int
-callFunc1 = ufCall (mkRef func1) (int 1)
-
-callFunc3 :: Expr Int
-callFunc3 = tfCall (mkRef func2) (bool True) (int 2) (int 3)
+funcDef2 :: Definition (QuantityDict (Bool -> Int -> Int -> Int)) (Expr (Bool -> Int -> Int -> Int))
+funcDef2 = mkQDefinition (mkUid "funcDef2") func2 (lam $ \b -> lam $ \x -> lam $ \y -> ifTE b x y) "g2" "h2"
 
 funcDef3 :: Definition (QuantityDict (Int -> Int)) (Expr (Int -> Int))
-funcDef3 = mkDefinition (mkUid "funcDef3") func1 (lam (\x -> add x (int 1))) "g3" "h3"
+funcDef3 = mkQDefinition (mkUid "funcDef3") func1 (lam (\x -> add x (int 1))) "g3" "h3"
 
 {-
 

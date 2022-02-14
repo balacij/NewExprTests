@@ -30,6 +30,7 @@ library
       Knowledge.Maths.Expr
       Knowledge.Maths.Literal
       Knowledge.Maths.QuantityDict
+      Knowledge.Maths.QuantityDict.Definition
       KnowledgeBase.Chunk
       KnowledgeBase.ChunkDB
       KnowledgeBase.TypedUIDRef

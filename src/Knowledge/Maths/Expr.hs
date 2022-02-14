@@ -30,6 +30,7 @@ data Expr t where
   App :: Expr (a -> b) -> Expr a -> Expr b
   -- ASIDE: Trying something out...
 
+{-
   -- | Unary Function "Call"s
   UFCall :: TypedUIDRef (UFuncDict a t) -> Expr a -> Expr t
   -- | Binary Function "Call"s
@@ -42,6 +43,9 @@ data Expr t where
 --       Writing a constructor for 1-5 parameter functions would be do-able,
 --       ...                       1-10 ...                         okay
 --       ...                       1-100 ...                     make this file huge.
+
+-}
+
 
 -- TODO: Should we try to replace the above constructors with something similar to the type-indexed heterogeneous lists?
 --       I've given this a few attempts, but have failed thus far.
@@ -59,9 +63,11 @@ class ExprC r where
   lam :: (r a -> r b) -> r (a -> b)
   app :: r (a -> b) -> r a -> r b
 
+{-
   ufCall :: TypedUIDRef (UFuncDict a t) -> r a -> r t
   bfCall :: TypedUIDRef (BFuncDict a b t) -> r a -> r b -> r t
   tfCall :: TypedUIDRef (TFuncDict a b c t) -> r a -> r b -> r c -> r t
+-}
 
 instance LiteralC Expr where
   int = lit . int
@@ -78,6 +84,9 @@ instance ExprC Expr where
   sy = sy
   lam = Lam
   app = App
+
+{-
   ufCall = ufCall
   bfCall = bfCall
   tfCall = tfCall
+-}
