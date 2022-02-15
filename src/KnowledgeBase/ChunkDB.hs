@@ -67,6 +67,46 @@ findOrErr u = fromMaybe (error $ "Failed to find chunk " ++ show u) . find u
 findAll :: Typeable a => TypeRep -> ChunkDB -> [a]
 findAll tr (ChunkDB (_, trm)) = maybe [] (mapMaybe unChunk) (M.lookup tr trm)
 
+{-
+consumeAllWithTyCon :: Typeable a => TyCon -> (forall b. Typeable (a b) => a b -> c) -> ChunkDB -> [c]
+consumeAllWithTyCon tc f c@(ChunkDB (_, trm)) = r -- foldr (\a b -> b ++ mapMaybe (fmap f . unChunk) (findAll a c)) [] trKeys
+  where
+    trKeys = filter ((==) tc . typeRepTyCon) (M.keys trm)
+
+    f' :: (Typeable a, Typeable b, Typeable (a b)) => Chunk -> Maybe (a b)
+    f' = unChunk1
+
+    r = foldr (\a b -> b ++ mapMaybe (fmap f . unChunk1) (findAll a c)) [] trKeys
+
+---------
+This function is seemingly impossible (or, at least, possible but very tricky!
+I haven't figured out an elegant solution that doesn't involve _some_ sort of
+enumeration).
+
+So, here is a big question arising:
+
+Do we want type parameters to be allowed for Chunks?
+  - If we do, any sort of "bulk operation that works on the type constructor level,
+    for any type parameters" is really difficult to perform _after_ a typecast because
+    we need to be able to find a monomorphic type for the input (which is the hard part)
+    as shown above.
+
+  - If we don't, this should become much easier. However, we would lose out on the
+    Haskell-level type errors.
+    
+    Is that a problem? In a sense, yes, for obvious reasons.
+    However, in the greater scheme of things, if "Drasil in Drasil" is the goal, then
+    "Drasil" as it stands is currently bootstrapped in Haskell, meaning the existing
+    code likely won't remain forever. In which case, this might not be a "bad" thing
+    at all because we'd likely have a different host language (e.g., Drasil..-lang?).
+
+    In any case, if we did remove type parameters in chunks, then we would need to
+    perform type checking at the level of Drasil (instead of leaning on the Haskell
+    static type system, we'd be using the "Drasil-compiler runtime"). This sounds
+    like it would work fine, but it might be a bit tedious.
+
+-}
+
 findRefs :: UID -> ChunkDB -> Maybe [UID]
 findRefs u (ChunkDB (tc, _)) = do
   (_, refs) <- M.lookup u tc
