@@ -1,5 +1,7 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module KnowledgeBase.ChunkDB
   ( ChunkDB,
@@ -24,7 +26,7 @@ where
 import Data.List (nub, (\\))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, typeOf, typeRep)
+import Data.Typeable (Proxy (Proxy), TyCon, TypeRep, Typeable, typeOf, typeRep, typeRepTyCon)
 import KnowledgeBase.Chunk (Chunk, HasChunkRefs (chunkRefs), chunkType, mkChunk, unChunk)
 import KnowledgeBase.UID (HasUID (..), UID)
 
@@ -66,6 +68,16 @@ findOrErr u = fromMaybe (error $ "Failed to find chunk " ++ show u) . find u
 -- On the bright side, we get order lists (by insertion order) for cheap!
 findAll :: Typeable a => TypeRep -> ChunkDB -> [a]
 findAll tr (ChunkDB (_, trm)) = maybe [] (mapMaybe unChunk) (M.lookup tr trm)
+
+consumeAllWithTyCon :: (Typeable a, Typeable c) => TyCon -> (forall b. Typeable b => a b -> c) -> ChunkDB -> [c]
+consumeAllWithTyCon tc f c@(ChunkDB (_, trm)) = r -- foldr (\a b -> b ++ mapMaybe (fmap f . unChunk) (findAll a c)) [] trKeys
+  where
+    trKeys = filter ((==) tc . typeRepTyCon) (M.keys trm)
+
+    f' :: (Typeable a, Typeable b) => Chunk -> Maybe (a b)
+    f' = unChunk
+
+    r = foldr (\a b -> b ++ mapMaybe (fmap f . f') (findAll a c)) [] trKeys
 
 findRefs :: UID -> ChunkDB -> Maybe [UID]
 findRefs u (ChunkDB (tc, _)) = do
