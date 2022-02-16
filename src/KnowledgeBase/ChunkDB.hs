@@ -21,10 +21,13 @@ module KnowledgeBase.ChunkDB
   )
 where
 
+import Control.Lens
+
 import Data.List (nub, (\\))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, typeOf, typeRep)
+import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, typeOf, typeRep, splitTyConApp)
+
 import KnowledgeBase.Chunk (Chunk, HasChunkRefs (chunkRefs), chunkType, mkChunk, unChunk)
 import KnowledgeBase.UID (HasUID (..), UID)
 
@@ -120,6 +123,8 @@ insert' = flip insert
 
 insert :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> a -> ChunkDB
 insert (ChunkDB (cu, ctr)) c
+  -- TODO: Enable this once I've removed th e type parameters for QDefinition!
+  -- | not (null (splitTyConApp (typeOf c) ^. _2)) = error "Chunks are not allowed to have type parameters."
   | typeOf c == typeRep (Proxy @ChunkDB) =
     error "Insertion of ChunkDBs in ChunkDBs is disallowed; please perform unions with them instead."
   | M.member (uid c) cu =

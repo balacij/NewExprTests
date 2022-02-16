@@ -8,77 +8,44 @@ it enabled... -}
 
 module Lib where
 
+import qualified Data.List.NonEmpty as NE
 import Data.Typeable (Proxy (Proxy))
 import Knowledge.Concepts.Definition (Definition, mkDefinition)
 import Knowledge.Maths.Expr (Expr, ExprC (..))
 import Knowledge.Maths.Literal (LiteralC (..))
 import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
 import Knowledge.Maths.QuantityDict.Definition (QDefinition, mkQDefinition)
+import qualified Knowledge.Maths.Space as S
 import KnowledgeBase.ChunkDB (ChunkDB, empty, insert')
 import KnowledgeBase.TypedUIDRef (mkRef)
 import KnowledgeBase.UID (mkUid)
 
-var1 :: QuantityDict Int
-var1 = mkQuantityDict (Proxy @Int) (mkUid "var1") "a1" "b1"
+var1 :: QuantityDict
+var1 = mkQuantityDict S.Integer (mkUid "var1") "a1" "b1"
 
-var2 :: QuantityDict Bool
-var2 = mkQuantityDict (Proxy @Bool) (mkUid "var2") "a2" "b2"
+var2 :: QuantityDict
+var2 = mkQuantityDict S.Boolean (mkUid "var2") "a2" "b2"
 
-func1 :: QuantityDict (Int -> Int)
-func1 = mkQuantityDict (Proxy @(Int -> Int)) (mkUid "func1") "c1" "d1"
+func1 :: QuantityDict
+func1 = mkQuantityDict (S.Function (S.Integer NE.:| []) S.Integer) (mkUid "func1") "c1" "d1"
 
-func2 :: QuantityDict (Bool -> Int -> Int -> Int)
-func2 = mkQuantityDict (Proxy @(Bool -> Int -> Int -> Int)) (mkUid "func2") "c2" "d2"
+func2 :: QuantityDict
+func2 = mkQuantityDict (S.Function (NE.fromList [S.Boolean, S.Integer, S.Integer]) S.Integer) (mkUid "func2") "c2" "d2"
 
-varDef1 :: QDefinition Expr Int
-varDef1 = mkQDefinition (mkUid "varDef1") var1 (int 1) "e1" "f1"
+varDef1 :: QDefinition Expr
+varDef1 = mkQDefinition (mkUid "varDef1") var1 (int 1) "e1"
 
-varDef2 :: QDefinition Expr Bool
-varDef2 = mkQDefinition (mkUid "varDef2") var2 (not_ $ bool False) "e2" "f2"
-
-funcDef1 :: QDefinition Expr (Int -> Int)
-funcDef1 = mkQDefinition (mkUid "funcDef1") func1 (lam $ \x -> add x (int 1)) "g1" "h1"
-
-{- NOTE: Without the `QDefinition` type alias, we need the following type signature:
-funcDef2 :: Definition (QuantityDict (Bool -> Int -> Int -> Int)) (Expr (Bool -> Int -> Int -> Int)) -}
-funcDef2 :: QDefinition Expr (Bool -> Int -> Int -> Int)
-funcDef2 = mkQDefinition (mkUid "funcDef2") func2 (lam $ \b -> lam $ \x -> lam $ \y -> ifTE b x y) "g2" "h2"
-
-funcDef3 :: QDefinition Expr (Int -> Int)
-funcDef3 = mkQDefinition (mkUid "funcDef3") func1 (lam (\x -> add x (int 1))) "g3" "h3"
-
-{-
-
-`mkDefinition` is generally 'more open' to errors (which is okay, because we might
-want to use the generic concept of a Definition else where too). For example, the below
-is the _inferred_ type signature when using `mkDefinition`, note the problematic `b`s:
-
-funcDef4 :: ExprC r =>
-  Definition
-    (QuantityDict (Bool -> Int -> Int -> Int))
-    (r (Bool -> b -> b -> b))
-funcDef4 = mkDefinition (mkUid "funcDef4") func2 (lam (\b -> lam (lam . ifTE b))) "g4" "gh"
-
-Luckily, we can just create a helper function for things that we commonly define with a type param
-to straighten up the type nicely: e.g., `mkQDefinition` (QuantityDict Definition).
-
-This, in conjunction with the QDefinition type alias, allows HLS to infer "QDefinition"
-type signatures fairly easily!
-
--}
-
-funcDef4 :: QDefinition Expr (Bool -> Int -> Int -> Int)
-funcDef4 = mkQDefinition (mkUid "funcDef4") func2 (lam (\b -> lam (lam . ifTE b))) "g4" "gh"
+varDef2 :: QDefinition Expr
+varDef2 = mkQDefinition (mkUid "varDef2") var2 (not_ $ bool False) "e2"
 
 cdb :: ChunkDB
 cdb =
-  insert' funcDef1 $
-    insert' varDef2 $
-      insert' varDef1 $
-        insert' func2 $
-          insert' func1 $
-            insert' var2 $
-              insert' var1 empty
+  insert' varDef2 $
+    insert' varDef1 $
+      insert' func2 $
+        insert' func1 $
+          insert' var2 $
+            insert' var1 empty
 
 test1 :: IO ()
 test1 = do

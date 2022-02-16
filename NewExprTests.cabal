@@ -26,11 +26,11 @@ source-repository head
 library
   exposed-modules:
       Knowledge.Concepts.Definition
-      Knowledge.Maths.Aliases
       Knowledge.Maths.Expr
       Knowledge.Maths.Literal
       Knowledge.Maths.QuantityDict
       Knowledge.Maths.QuantityDict.Definition
+      Knowledge.Maths.Space
       KnowledgeBase.Chunk
       KnowledgeBase.ChunkDB
       KnowledgeBase.TypedUIDRef
@@ -43,6 +43,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , lens
   default-language: Haskell2010
 
 executable NewExprTests-exe
@@ -51,9 +52,10 @@ executable NewExprTests-exe
       Paths_NewExprTests
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       NewExprTests
     , base >=4.7 && <5
     , containers
+    , lens
   default-language: Haskell2010

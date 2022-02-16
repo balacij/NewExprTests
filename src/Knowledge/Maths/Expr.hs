@@ -3,70 +3,45 @@
 module Knowledge.Maths.Expr where
 
 import Data.Typeable (Proxy (Proxy))
-import Knowledge.Maths.Aliases (BFuncDict, TFuncDict, UFuncDict)
 import Knowledge.Maths.Literal (Literal, LiteralC (..))
 import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
-import KnowledgeBase.TypedUIDRef (TypedUIDRef)
+import Knowledge.Maths.Space (HasSpace (..), Space)
+import qualified Knowledge.Maths.Space as S
+import KnowledgeBase.TypedUIDRef (TypedUIDRef, mkRef)
 
 -- A conscious choice was made to make Expr not refer to specific definitions, but to refer to only QuantityDicts.
 -- This is probably a big decision. Might be notable on thesis.
 
-data Expr t where
-  Lit :: Literal t -> Expr t
-  Not :: Expr Bool -> Expr Bool
-  Add :: Num t => Expr t -> Expr t -> Expr t
-  Sub :: Num t => Expr t -> Expr t -> Expr t -- TODO: We might need to create our own copies of Haskell 'Num' typeclass more suited to Drasil, 'Sub' under Naturals is 'Monus' for example, and we should make this difference a bit more explicit ... somehow... im not sure yet how
-  IfTE :: Expr Bool -> Expr a -> Expr a -> Expr a
-  -- TODO: I would like an alternative to this all below, or else creating functions with >10 variables will be a real hassle (but, safe at least!).
-
-  -- TODO: NamedArguments: Do we want them here? It depends on what we want really. We _can_ have them here either wrapping the arguments with a "Maybe" or making them an "unsafe" component checked at Drasil-runtime (not Drasil-artifact-runtime), or we can move them completely into CodeExpr (seems a bit more appropriate I think) with the same "Maybe"s
-  --       For now, I've excluded them from this test.
-
+data Expr where
+  Lit :: Literal -> Expr
+  Not :: Expr -> Expr
+  Add :: [Expr] -> Expr
+  Sub :: Expr -> Expr -> Expr
+  IfTE :: Expr -> Expr -> Expr -> Expr
   -- | Symbol
-  Sy :: TypedUIDRef (QuantityDict t) -> Expr t
-  -- ASIDE: Suggested style
-
-  Lam :: (Expr a -> Expr b) -> Expr (a -> b)
-  App :: Expr (a -> b) -> Expr a -> Expr b
-  -- ASIDE: Trying something out...
+  Sy :: TypedUIDRef QuantityDict -> Space -> Expr
+  FCall :: TypedUIDRef QuantityDict -> [Expr] -> Space -> Expr
 
 {-
-  -- | Unary Function "Call"s
-  UFCall :: TypedUIDRef (UFuncDict a t) -> Expr a -> Expr t
-  -- | Binary Function "Call"s
-  BFCall :: TypedUIDRef (BFuncDict a b t) -> Expr a -> Expr b -> Expr t
-  -- | Tertiary Functions "Call"s
-  TFCall :: TypedUIDRef (TFuncDict a b c t) -> Expr a -> Expr b -> Expr c -> Expr t
-
--- TODO: It would be really nice here if we could get these to scale better.
---       Right now, it would require us to manually build many constructors.
---       Writing a constructor for 1-5 parameter functions would be do-able,
---       ...                       1-10 ...                         okay
---       ...                       1-100 ...                     make this file huge.
-
+  Lam :: (Expr -> Expr) -> Space -> Expr
+  App :: Expr -> Expr -> Expr
 -}
 
-
--- TODO: Should we try to replace the above constructors with something similar to the type-indexed heterogeneous lists?
---       I've given this a few attempts, but have failed thus far.
-
 class ExprC r where
-  lit :: Literal t -> r t
-  not_ :: r Bool -> r Bool
-  add :: Num t => r t -> r t -> r t
-  sub :: Num t => r t -> r t -> r t
+  lit :: Literal -> r
+  not_ :: r -> r
+  add :: [r] -> r
+  sub :: r -> r -> r
 
-  ifTE :: r Bool -> r a -> r a -> r a
+  ifTE :: r -> r -> r -> r
 
-  sy :: TypedUIDRef (QuantityDict t) -> r t
+  sy :: QuantityDict -> r
 
-  lam :: (r a -> r b) -> r (a -> b)
-  app :: r (a -> b) -> r a -> r b
+  fcall :: QuantityDict -> [r] -> r
 
 {-
-  ufCall :: TypedUIDRef (UFuncDict a t) -> r a -> r t
-  bfCall :: TypedUIDRef (BFuncDict a b t) -> r a -> r b -> r t
-  tfCall :: TypedUIDRef (TFuncDict a b c t) -> r a -> r b -> r c -> r t
+  lam :: (r -> r) -> Space -> r
+  app :: r -> r -> r
 -}
 
 instance LiteralC Expr where
@@ -81,12 +56,28 @@ instance ExprC Expr where
   add = add
   sub = sub
   ifTE = ifTE
-  sy = sy
-  lam = Lam
-  app = App
+  sy qd = Sy (mkRef qd) (space qd)
+
+  fcall qd es = FCall (mkRef qd) es s
+    where
+      S.Function _ s = space qd -- TODO: exhaustive search?
 
 {-
-  ufCall = ufCall
-  bfCall = bfCall
-  tfCall = tfCall
+  lam f s = Lam f s
+  app = App
+-}
+
+instance HasSpace Expr where
+  space (Lit lit) = space lit
+  space (Not ex) = S.Boolean
+  space (Add exs) = space (head exs)
+  space (Sub l _) = space l
+  space (IfTE _ _ r) = space r
+  space (Sy _ s) = s
+  space (FCall _ _ s) = s
+
+{-
+  space (Lam f s) = S.Function _ _
+  space (App e (Lam f _)) = space (f e)
+  space (App _ _) = error "Invalid case in 'space'."
 -}
