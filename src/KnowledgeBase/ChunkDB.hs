@@ -124,7 +124,7 @@ insert' = flip insert
 insert :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> a -> ChunkDB
 insert (ChunkDB (cu, ctr)) c
   -- TODO: Enable this once I've removed th e type parameters for QDefinition!
-  -- | not (null (splitTyConApp (typeOf c) ^. _2)) = error "Chunks are not allowed to have type parameters."
+  --  | not (null (splitTyConApp (typeOf c) ^. _2)) = error "Chunks are not allowed to have type parameters."
   | typeOf c == typeRep (Proxy @ChunkDB) =
     error "Insertion of ChunkDBs in ChunkDBs is disallowed; please perform unions with them instead."
   | M.member (uid c) cu =
