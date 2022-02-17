@@ -1,12 +1,11 @@
 module Knowledge.Maths.QuantityDict.Definition
   ( QDefinition,
     mkQDefinition,
+    mkFuncDefinition
   )
 where
 
 import qualified Data.List.NonEmpty as NE
-import Knowledge.Concepts.Definition (Definition, mkDefinition)
-import Knowledge.Maths.Expr (Expr)
 import Knowledge.Maths.QuantityDict (QuantityDict)
 import Knowledge.Maths.Space (HasSpace (..))
 import qualified Knowledge.Maths.Space as S
@@ -35,8 +34,9 @@ mkQDefinition u qd d
 
 mkFuncDefinition :: HasSpace r => UID -> QuantityDict -> [QuantityDict] -> r -> String -> QDefinition r
 mkFuncDefinition u qd inQds d
+  | outSp /= space d = error $ "Provided expression for `" ++ show u ++ "` does not match the expected resultant type."
   | all (== True) c && length qdIns == length inQds = QDefinition u qd d inQds
   | otherwise = error $ "Bad types for function creation: " ++ show u
   where
-    S.Function qdIns _ = space qd
+    S.Function qdIns outSp = space qd
     c = zipWith (\a b -> a == space b) (NE.toList qdIns) inQds

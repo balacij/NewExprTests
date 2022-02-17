@@ -2,9 +2,8 @@
 
 module Knowledge.Maths.Expr where
 
-import Data.Typeable (Proxy (Proxy))
 import Knowledge.Maths.Literal (Literal, LiteralC (..))
-import Knowledge.Maths.QuantityDict (QuantityDict, mkQuantityDict)
+import Knowledge.Maths.QuantityDict (QuantityDict)
 import Knowledge.Maths.Space (HasSpace (..), Space)
 import qualified Knowledge.Maths.Space as S
 import KnowledgeBase.TypedUIDRef (TypedUIDRef, mkRef)
@@ -51,11 +50,11 @@ instance LiteralC Expr where
   bool = lit . bool
 
 instance ExprC Expr where
-  lit = lit
-  not_ = not_
-  add = add
-  sub = sub
-  ifTE = ifTE
+  lit = Lit
+  not_ = Not
+  add = Add
+  sub = Sub
+  ifTE = IfTE
   sy qd = Sy (mkRef qd) (space qd)
 
   fcall qd es = FCall (mkRef qd) es s
@@ -68,8 +67,8 @@ instance ExprC Expr where
 -}
 
 instance HasSpace Expr where
-  space (Lit lit) = space lit
-  space (Not ex) = S.Boolean
+  space (Lit l) = space l
+  space (Not _) = S.Boolean
   space (Add exs) = space (head exs)
   space (Sub l _) = space l
   space (IfTE _ _ r) = space r

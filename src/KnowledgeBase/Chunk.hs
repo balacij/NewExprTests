@@ -1,7 +1,10 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 module KnowledgeBase.Chunk
   ( Chunk,
+    IsChunk,
     HasChunkRefs (..),
     mkChunk,
     unChunk,
@@ -9,13 +12,15 @@ module KnowledgeBase.Chunk
   )
 where
 
-import Data.Typeable (TypeRep, Typeable, cast, typeOf)
+import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, cast, typeOf, typeRep)
 import KnowledgeBase.UID (HasUID (..), UID)
 
 class HasChunkRefs a where
   chunkRefs :: a -> [UID]
 
-data Chunk = forall a. (HasUID a, HasChunkRefs a, Typeable a) => Chunk a
+type IsChunk a = (HasUID a, HasChunkRefs a, Typeable a)
+
+data Chunk = forall a. IsChunk a => Chunk a
 
 instance Eq Chunk where
   l == r = uid l == uid r
@@ -24,7 +29,9 @@ instance HasUID Chunk where
   uid (Chunk t) = uid t
 
 mkChunk :: (HasUID a, HasChunkRefs a, Typeable a) => a -> Chunk
-mkChunk = Chunk
+mkChunk a
+  | typeOf a == typeRep (Proxy @Chunk) = error "Cannot place a Chunk inside of a Chunk"
+  | otherwise = Chunk a
 
 unChunk :: Typeable a => Chunk -> Maybe a
 unChunk (Chunk c) = cast c

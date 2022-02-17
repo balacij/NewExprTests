@@ -2,7 +2,6 @@
 
 module Knowledge.Maths.Literal (Literal, LiteralC (..)) where
 
-import qualified Data.Bool as S
 import Knowledge.Maths.Space (HasSpace (space))
 import qualified Knowledge.Maths.Space as S
 
@@ -25,7 +24,7 @@ instance LiteralC Literal where
   bool = Bool
 
 instance HasSpace Literal where
-  space (Int n) = S.Integer
-  space (Dbl y) = S.Real
-  space (Str s) = S.String
-  space (Bool b) = S.Boolean
+  space (Int _) = S.Integer
+  space (Dbl _) = S.Real
+  space (Str _) = S.String
+  space (Bool _) = S.Boolean

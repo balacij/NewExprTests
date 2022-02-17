@@ -13,6 +13,7 @@ module KnowledgeBase.ChunkDB
     insert,
     insert',
     insertAll,
+    insertAll',
     insertAllOrIgnore,
     union,
     registered,
@@ -21,13 +22,10 @@ module KnowledgeBase.ChunkDB
   )
 where
 
-import Control.Lens
-
 import Data.List (nub, (\\))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, typeOf, typeRep, splitTyConApp)
-
+import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, typeOf, typeRep)
 import KnowledgeBase.Chunk (Chunk, HasChunkRefs (chunkRefs), chunkType, mkChunk, unChunk)
 import KnowledgeBase.UID (HasUID (..), UID)
 
@@ -96,7 +94,7 @@ Do we want type parameters to be allowed for Chunks?
 
   - If we don't, this should become much easier. However, we would lose out on the
     Haskell-level type errors.
-    
+
     Is that a problem? In a sense, yes, for obvious reasons.
     However, in the greater scheme of things, if "Drasil in Drasil" is the goal, then
     "Drasil" as it stands is currently bootstrapped in Haskell, meaning the existing
@@ -128,7 +126,7 @@ insert (ChunkDB (cu, ctr)) c
   | typeOf c == typeRep (Proxy @ChunkDB) =
     error "Insertion of ChunkDBs in ChunkDBs is disallowed; please perform unions with them instead."
   | M.member (uid c) cu =
-    error $ "Attempting to register a chunk which already contains a UID; `" ++ show (uid c) ++ "`"
+    error $ "Attempting to register a chunk with an already registered UID; `" ++ show (uid c) ++ "`"
   | otherwise = ChunkDB (finalCu, ctr')
   where
     c' :: Chunk
@@ -151,7 +149,10 @@ insert (ChunkDB (cu, ctr)) c
     ctr' = M.alter (Just . maybe [c'] (++ [c'])) (typeOf c) ctr
 
 insertAll :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> [a] -> ChunkDB
-insertAll = foldr (flip insert)
+insertAll cdb l = foldr (flip insert) cdb (reverse l) -- note: the "reverse" is here to make insertions slightly more readable -- I don't want to use foldl (it seems many have complaints about it)
+
+insertAll' :: (HasUID a, HasChunkRefs a, Typeable a) => [a] -> ChunkDB -> ChunkDB
+insertAll' = flip insertAll
 
 insertAllOrIgnore :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> [a] -> ChunkDB
 insertAllOrIgnore cdb = foldr (\next old -> if isRegistered (uid next) cdb then old else insert old next) cdb

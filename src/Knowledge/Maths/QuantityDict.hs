@@ -4,11 +4,9 @@ module Knowledge.Maths.QuantityDict
   )
 where
 
-import Data.Typeable (Proxy (..))
-import Knowledge.Concepts.Definition (Definition, mkDefinition)
 import Knowledge.Maths.Space (HasSpace (space), Space)
 import KnowledgeBase.Chunk (HasChunkRefs (chunkRefs))
-import KnowledgeBase.UID (HasUID (uid), UID, mkUid)
+import KnowledgeBase.UID (HasUID (uid), UID)
 
 data QuantityDict = QuantityDict
   { _uid :: UID,
