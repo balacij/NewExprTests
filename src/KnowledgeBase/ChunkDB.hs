@@ -26,7 +26,7 @@ import Data.List (nub, (\\))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Typeable (Proxy (Proxy), TypeRep, Typeable, typeOf, typeRep)
-import KnowledgeBase.Chunk (Chunk, HasChunkRefs (chunkRefs), chunkType, mkChunk, unChunk)
+import KnowledgeBase.Chunk (Chunk, HasChunkRefs (chunkRefs), chunkType, mkChunk, unChunk, IsChunk)
 import KnowledgeBase.UID (HasUID (..), UID)
 
 type ReferredBy = [UID]
@@ -116,10 +116,10 @@ findRefs u (ChunkDB (tc, _)) = do
 findRefsOrErr :: UID -> ChunkDB -> [UID]
 findRefsOrErr u = fromMaybe (error $ "Failed to find references for unknown chunk " ++ show u) . find u
 
-insert' :: (HasUID a, HasChunkRefs a, Typeable a) => a -> ChunkDB -> ChunkDB
+insert' :: IsChunk a => a -> ChunkDB -> ChunkDB
 insert' = flip insert
 
-insert :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> a -> ChunkDB
+insert :: IsChunk a => ChunkDB -> a -> ChunkDB
 insert (ChunkDB (cu, ctr)) c
   -- TODO: Enable this once I've removed th e type parameters for QDefinition!
   --  | not (null (splitTyConApp (typeOf c) ^. _2)) = error "Chunks are not allowed to have type parameters."
@@ -148,13 +148,13 @@ insert (ChunkDB (cu, ctr)) c
     ctr' :: ChunksByTypeRep
     ctr' = M.alter (Just . maybe [c'] (++ [c'])) (typeOf c) ctr
 
-insertAll :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> [a] -> ChunkDB
+insertAll :: IsChunk a => ChunkDB -> [a] -> ChunkDB
 insertAll cdb l = foldr (flip insert) cdb (reverse l) -- note: the "reverse" is here to make insertions slightly more readable -- I don't want to use foldl (it seems many have complaints about it)
 
-insertAll' :: (HasUID a, HasChunkRefs a, Typeable a) => [a] -> ChunkDB -> ChunkDB
+insertAll' :: IsChunk a => [a] -> ChunkDB -> ChunkDB
 insertAll' = flip insertAll
 
-insertAllOrIgnore :: (HasUID a, HasChunkRefs a, Typeable a) => ChunkDB -> [a] -> ChunkDB
+insertAllOrIgnore :: IsChunk a => ChunkDB -> [a] -> ChunkDB
 insertAllOrIgnore cdb = foldr (\next old -> if isRegistered (uid next) cdb then old else insert old next) cdb
 
 union :: ChunkDB -> ChunkDB -> ChunkDB
